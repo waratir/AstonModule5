@@ -1,0 +1,6 @@
+app:
+  site-name: test-site.com
+
+logging:
+  level:
+    org.springframework.mail: DEBUG
