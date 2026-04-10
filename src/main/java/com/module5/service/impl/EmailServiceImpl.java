@@ -2,6 +2,7 @@ package com.module5.service.impl;
 
 import com.module5.dto.UserEvent;
 import com.module5.service.EmailService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +24,7 @@ public class EmailServiceImpl implements EmailService {
     private String siteName;
 
     @Override
+    @CircuitBreaker(name = "emailService", fallbackMethod = "fallbackSendEmail")
     public void sendEmail(UserEvent userEvent) {
         String to = userEvent.getEmail();
         UserEvent.OperationType operationType = userEvent.getOperationType();
@@ -53,6 +55,15 @@ public class EmailServiceImpl implements EmailService {
             log.error("Failed to send email to: {} for operation: {}", to, operationType, e);
             throw new RuntimeException("Failed to send email to: " + to, e);
         }
+    }
+
+    @SuppressWarnings("unused")
+    private void fallbackSendEmail(UserEvent userEvent, Throwable t) {
+        log.warn("⚠️ CIRCUIT BREAKER ACTIVATED! Email not sent to: {}", userEvent.getEmail());
+        log.warn("Reason: {}", t.getMessage());
+        log.warn("In production, this email would be saved to database for retry");
+
+        //pendingEmailService.saveForRetry(userEvent);
     }
 
     private String getSubject(UserEvent.OperationType operationType) {
