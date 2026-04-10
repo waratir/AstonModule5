@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: notification-service  # Это имя будет использоваться для поиска конфига
+
+  cloud:
+    config:
+      uri: http://localhost:8888  # Адрес Config Server
+      fail-fast: false  # Если Config Server недоступен, сервис не запустится
+      retry:
+        max-attempts: 10
+        max-interval: 2000
